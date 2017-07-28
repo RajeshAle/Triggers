@@ -1,0 +1,52 @@
+trigger ContactsToAccounts on Contact (before insert) {
+    Set<Id> accIds= new Set<Id>();
+    for(Contact con:Trigger.new)
+    {
+        if(con.AccountId!=Null){
+            accIds.add(con.AccountId);
+        }
+    }
+    System.debug('Trigger:'+Trigger.new);
+    System.debug('AccIds:'+accIds);
+    List<Contact> conList=[SELECT Active__C,AccountId FROM Contact Where AccountId IN:accIds];
+    System.debug('List:' +conList);
+    Map<Id,Integer> accIdActiveConMap = new Map<Id,Integer>();
+    System.debug('Before Map:' +accIdActiveConMap);
+    
+    for(Contact conObj:conList) {
+        if(conObj.Active__c==true && accIdActiveConMap.get(conObj.AccountId)==NULL ){
+            accIdActiveConMap.put(conObj.AccountId,1);
+        }
+        else if (conObj.Active__c==true && accIdActiveConMap.get(conObj.AccountId)!=NULL)
+        {
+            accIdActiveConMap.put(conObj.AccountId,accIdActiveConMap.get(conObj.AccountId)+1); 
+        }
+    }
+    
+    for(Contact conObj:Trigger.new) {
+        
+        // System.debug('Account Id for ConObj:' + accIdActiveConMap.get(conObj.AccountId));
+        if(conObj.Active__c==true && accIdActiveConMap.get(conObj.AccountId)==NULL){
+            accIdActiveConMap.put(conObj.AccountId,0);
+        } 
+        
+    }
+    
+    List<Contact> c1= new List<Contact>();
+    System.debug('After Map:' +accIdActiveConMap);
+    
+    
+    for(Contact conObj: trigger.new){
+        if(accIdActiveConMap.get(conObj.AccountId) < 2 && conObj.Active__c==true ){
+            c1.add(conObj);
+            accIdActiveConMap.put(conObj.AccountId,accIdActiveConMap.get(conObj.AccountId)+1);
+            System.debug('Map After Insertion:' + accIdActiveConMap);
+            
+        }
+        else{
+            conObj.addError('No More than Two Active Contacts on this Account');
+        }
+    }
+    
+    
+}
