@@ -32,13 +32,11 @@ trigger ContactsToAccounts on Contact (before insert) {
         
     }
     
-    List<Contact> c1= new List<Contact>();
     System.debug('After Map:' +accIdActiveConMap);
     
     
     for(Contact conObj: trigger.new){
         if(accIdActiveConMap.get(conObj.AccountId) < 2 && conObj.Active__c==true ){
-            c1.add(conObj);
             accIdActiveConMap.put(conObj.AccountId,accIdActiveConMap.get(conObj.AccountId)+1);
             System.debug('Map After Insertion:' + accIdActiveConMap);
             
