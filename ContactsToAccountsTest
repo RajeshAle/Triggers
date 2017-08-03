@@ -1,16 +1,14 @@
-@isTest(seeAllData=True)
+@isTest
 private class ContactsToAccountsTest {
     
     static testMethod void myTest()
     {
         List<Contact> contacts= new List<Contact>{};
-        Account a= new Account(Name='Acme Plumbing Test');
+        Account a= new Account(Name='Acme Plumbing Test1');
         
-        List<Account> ids=[Select Id From Account Where Name LIKE 'Fry and%'];
-        //gets Id of publishing Company Account Id which already has contacts.
         insert a;
         System.debug('Account got Inserted:'+a);
-        System.debug('Existing Acounts:'+ids);
+        
         
         List<Contact> contacts1= new List<Contact>();
         for(Integer i=0;i<4;i++)
@@ -19,13 +17,6 @@ private class ContactsToAccountsTest {
             contacts1.add(con);
         }
         
-        System.debug('Contacts for new account:'+contacts1);
-        
-        for(Integer i=0;i<4;i++)
-        {
-            Contact con=new Contact(LastName='Test Contact'+i,Active__C=True,AccountId=ids.get(0).Id);
-            contacts1.add(con);
-        }
          System.debug('All contacts:'+contacts1);
        
         Database.SaveResult[] srList = Database.insert(contacts1, false);
@@ -42,6 +33,33 @@ private class ContactsToAccountsTest {
                 }
             }
         }
+        
+        
+        List<Account> ids=[Select Id From Account Where Name='Acme Plumbing Test1'];
+       
+        System.debug('Contacts for new account:'+contacts1);
+        
+        for(Integer i=0;i<4;i++)
+        {
+            Contact con=new Contact(LastName='Testing Contact'+i,Active__C=True,AccountId=ids.get(0).Id);
+            contacts1.add(con);
+        }
+        
+         Database.SaveResult[] srList1 = Database.insert(contacts1, false);
+        
+        
+        // Iterate through each returned result
+        for (Database.SaveResult sr : srList1) {
+            if (!sr.isSuccess()) {
+                // Operation failed, so get all errors                
+                for(Database.Error err : sr.getErrors()) {
+                    System.debug('The following error has occurred.');                    
+                    System.debug(err.getStatusCode() + ': ' + err.getMessage());
+                    System.debug('Fields that affected this error: ' + err.getFields());
+                }
+            }
+        }
+       
         
         
     }
