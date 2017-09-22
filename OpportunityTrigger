@@ -1,0 +1,33 @@
+trigger OpportunityTrigger on Opportunity (after insert,after update) {
+    
+    List<Opportunity> opp = new List<Opportunity>();
+    List<OpportunityLineItem> lines = new List<OpportunityLineItem>();
+    
+    if (Trigger.isInsert) {
+        for(Opportunity opp:Trigger.New)
+        {
+            if(opp.Type=='New Customer'){
+                OpportunityLineItem oli = new OpportunityLineItem(Quantity=1,TotalPrice=10,PricebookEntryId='01u1I000001CmfkQAC',OpportunityId =opp.Id);
+                lines.add(oli);
+                System.debug('Adding OpportunityLineItem:'+ oli);
+            }
+        }
+        insert lines;
+    }
+    
+    if (Trigger.isUpdate) {
+        Set<Id> OppId = new Set<Id>();
+        for(Opportunity opp:Trigger.New)
+        {
+            if(opp.Type!='New Customer'){
+                OppId.add(opp.Id);
+                System.debug('Deleting OpportunityLineItem:'+ lines);
+            }
+        }
+        List<OpportunityLineItem> CurrentOLIs = [Select Id, OpportunityId FROM OpportunityLineItem WHERE OpportunityId IN :OppId AND PricebookEntryId='01u1I000001CmfkQAC'];
+        delete CurrentOLIs;
+        
+    }
+    
+    
+}
